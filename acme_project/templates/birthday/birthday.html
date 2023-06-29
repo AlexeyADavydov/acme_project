@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 
-{% block content %}
+{% load django_bootstrap5 %}
 
+{% block content %}
+  <div class="card col-4">
+    <div class="card-header">
+      Калькулятор ожидания дня рождения
+    </div>
+    <div class="card-body">
+      <form>
+        {% bootstrap_form form %}
+        {% bootstrap_button button_type="submit" content="Отправить" %}
+      </form>
+    </div>
+  </div>
+  {% with data=request.GET %}
+
+    {% if data %}
+      <h2>Привет, {{ data.first_name }} {{ data.last_name }}</h2>
+    {% endif %}
+
+  {% endwith %}
 {% endblock %}
