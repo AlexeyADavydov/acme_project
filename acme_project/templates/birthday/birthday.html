@@ -8,17 +8,31 @@
       Калькулятор ожидания дня рождения
     </div>
     <div class="card-body">
-      <form>
+      <form method="post">
+        {% csrf_token %}
         {% bootstrap_form form %}
         {% bootstrap_button button_type="submit" content="Отправить" %}
       </form>
     </div>
   </div>
-  {% with data=request.GET %}
 
+  {% with data=form.instance %}
+    {% if form.is_valid %}
+      ID новой записи в БД: {{ data.id }}
+      <hr>
+      <h2> Привет, {{ data.first_name }} {{ data.last_name }}
+      {% if birthday_countdown == 0 %}
+        <p>С днём рождения!</p>
+      {% else %}
+        <p>Осталось дней до дня рождения: {{ birthday_countdown }}!</p>
+      {% endif %}
+    {% endif %}
+  {% endwith %}
+
+  {% comment %} {% with data=request.POST %}
     {% if data %}
       <h2>Привет, {{ data.first_name }} {{ data.last_name }}</h2>
     {% endif %}
-
-  {% endwith %}
+  {% endwith %} {% endcomment %}
+  
 {% endblock %}

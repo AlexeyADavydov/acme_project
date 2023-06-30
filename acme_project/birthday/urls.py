@@ -6,4 +6,6 @@ app_name = 'birthday'
 
 urlpatterns = [
     path('', views.birthday, name='create'),
+    path('list/', views.birthday_list, name='list')
 ]
+
