@@ -7,6 +7,16 @@ from .forms import BirthdayForm
 from .models import Birthday
 from .utils import calculate_birthday_countdown
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+
+
+@login_required
+def simple_view(request):
+    return HttpResponse('Страница для залогиненых пользователей!')
+
 
 class BirthdayListView(ListView):
     model = Birthday
@@ -19,22 +29,44 @@ class BirthdayListView(ListView):
 #     success_url = reverse_lazy('birthday:list')
 
 
-class BirthdayCreateView(CreateView):
+class BirthdayCreateView(LoginRequiredMixin, CreateView):
+    model = Birthday
+    form_class = BirthdayForm
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+
+class BrithdayUpdateView(LoginRequiredMixin, UpdateView):
     model = Birthday
     form_class = BirthdayForm
 
+    def dispatch(self, request, *args, **kwargs):
+        get_object_or_404(Birthday, pk=kwargs['pk'], author=request.user)
+        return super().dispatch(request, *args, **kwargs)
+    
+    # def dispatch(self, request, *args, **kwargs):
+    #     # При получении объекта не указываем автора.
+    #     # Результат сохраняем в переменную.
+    #     instance = get_object_or_404(Birthday, pk=kwargs['pk'])
+    #     # Сверяем автора объекта и пользователя из запроса.
+    #     if instance.author != request.user:
+    #         # Здесь может быть как вызов ошибки, так и редирект на нужную страницу.
+    #         raise PermissionDenied
+    #     return super().dispatch(request, *args, **kwargs) 
 
-class BrithdayUpdateView(UpdateView):
-    model = Birthday
-    form_class = BirthdayForm
 
-
-class BirthdayDeleteView(DeleteView):
+class BirthdayDeleteView(LoginRequiredMixin, DeleteView):
     model = Birthday
     success_url = reverse_lazy('birthday:list')
 
+    def dispatch(self, request, *args, **kwargs):
+        get_object_or_404(Birthday, pk=kwargs['pk'], author=request.user)
+        return super().dispatch(request, *args, **kwargs)
 
-class BirthdayDetailView(DetailView):
+
+class BirthdayDetailView(LoginRequiredMixin, DetailView):
     model = Birthday
     
     def get_context_data(self, **kwargs):
