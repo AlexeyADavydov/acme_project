@@ -4,7 +4,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-m&$lzdzkutvrbr5vt=jpm)7#g7cken_tk%($ty+w902n7wb#=e'
 
-DEBUG = False # включает 404, а с Фалсе включает джанго
+DEBUG = True # включает 404, а с Фалсе включает джанго
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'pages.apps.PagesConfig',
     'django_bootstrap5',
     'users_app',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -32,6 +33,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
 ]
 
 ROOT_URLCONF = 'acme_project.urls'

@@ -2,6 +2,7 @@ from django import forms
 from .models import Birthday
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from .models import Birthday, Congratulations
 
 BEATLES = {'Джон Леннон', 'Пол Маккартни', 'Джордж Харрисон', 'Ринго Старр'}
 
@@ -35,3 +36,7 @@ class BirthdayForm(forms.ModelForm):
                 "Мы тоже любим Битлз, но введите, пожалуйста, настоящее имя!"
             )
 
+class CongratulationForm(forms.ModelForm):
+    class Meta:
+        model = Congratulations
+        fields = ('text',)

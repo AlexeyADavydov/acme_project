@@ -3,14 +3,16 @@ from django.views.generic import (
 )
 from django.urls import reverse_lazy
 
-from .forms import BirthdayForm
-from .models import Birthday
+from .forms import BirthdayForm, CongratulationForm
+from .models import Birthday, Congratulations
 from .utils import calculate_birthday_countdown
 
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+
+
 
 
 @login_required
@@ -20,6 +22,9 @@ def simple_view(request):
 
 class BirthdayListView(ListView):
     model = Birthday
+    queryset = Birthday.objects.prefetch_related(
+        'tags',
+    ).select_related('author') # Изучить ещё раз оптимизацию
     ordering = 'id'
     paginate_by = 10
 
@@ -66,7 +71,7 @@ class BirthdayDeleteView(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
 
-class BirthdayDetailView(LoginRequiredMixin, DetailView):
+class BirthdayDetailView(DetailView):
     model = Birthday
     
     def get_context_data(self, **kwargs):
@@ -74,7 +79,24 @@ class BirthdayDetailView(LoginRequiredMixin, DetailView):
         context['birthday_countdown'] = calculate_birthday_countdown(
             self.object.birthday
         )
+        context['form'] = CongratulationForm()
+        context['congratulations'] = (
+            self.object.congratulations.select_related('author')
+        )
         return context
+
+
+@login_required
+def add_comment(request, pk):
+    birthday = get_object_or_404(Birthday, pk=pk)
+    form = CongratulationForm(request.POST)
+    if form.is_valid():
+        congratulation = form.save(commit=False)
+        congratulation.author = request.user
+        congratulation.birthday = birthday
+        congratulation.save()
+    return redirect('birthday:detail', pk=pk)
+
 
 
 # archive
@@ -128,3 +150,26 @@ class BirthdayDetailView(LoginRequiredMixin, DetailView):
 #     form_class = BirthdayForm
 #     template_name = 'birthday/birthday.html' # нужно указать, иначе birthday_form.html
 
+
+
+# Обработка данных из формы CongratulationForm через CBV
+
+# class CongratulationCreateView(LoginRequiredMixin, CreateView):
+#     birthday = None
+#     model = Congratulation
+#     form_class = CongratulationForm
+
+#     # Переопределяем dispatch()
+#     def dispatch(self, request, *args, **kwargs):
+#         self.birthday = get_object_or_404(Birthday, pk=kwargs['pk'])
+#         return super().dispatch(request, *args, **kwargs)
+
+#     # Переопределяем form_valid()
+#     def form_valid(self, form):
+#         form.instance.author = self.request.user
+#         form.instance.birthday = self.birthday
+#         return super().form_valid(form)
+
+#     # Переопределяем get_success_url()
+#     def get_success_url(self):
+#         return reverse('birthday:detail', kwargs={'pk': self.birthday.pk}) 
